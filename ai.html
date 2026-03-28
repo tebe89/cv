@@ -3,217 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Cover Letter Generator - Gemini Powered</title>
+    <title>Gemini CV Architect - Ultimate Version</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #1e293b; }
+        
+        /* Preview A4 */
         .preview-container { 
-            background: white; width: 210mm; height: 297mm; padding: 20mm; 
-            margin: auto; box-shadow: 0 10px 50px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column; overflow: hidden;
+            background: white; width: 210mm; height: 297mm; padding: 25mm 20mm; 
+            margin: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
         }
+
         @media print {
-            .no-print { display: none; }
-            body { background: white; padding: 0; }
-            .preview-container { box-shadow: none; margin: 0; width: 100%; }
+            .no-print { display: none !important; }
+            body { background: white; padding: 0; margin: 0; }
+            .preview-container { box-shadow: none; margin: 0; width: 100%; border: none; }
             @page { size: A4; margin: 0; }
         }
-        #ai-content { transition: all 0.3s ease; line-height: 1.7; text-align: justify; }
-        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #1e293b; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Custom Scrollbar untuk Model List */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .model-item { cursor: pointer; transition: all 0.2s; border-radius: 8px; padding: 6px 10px; font-size: 11px; margin-bottom: 4px; border: 1px solid transparent; }
+        .model-item:hover { background: #eff6ff; border-color: #3b82f6; color: #1d4ed8; }
+        .model-active { background: #dbeafe; border-color: #3b82f6; color: #1d4ed8; font-weight: bold; }
+
+        #ai-body { text-align: justify; line-height: 1.7; transition: font-size 0.2s; }
+        
+        /* Signature Filter */
+        #ttd-img { 
+            display: none; 
+            filter: contrast(1.3) brightness(1.05); 
+            image-rendering: -webkit-optimize-contrast; 
+            max-height: 85px;
+            mix-blend-mode: multiply; /* Efek transparan otomatis untuk JPG latar putih */
+        }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 lg:p-10">
 
-    <div class="max-w-[1400px] mx-auto flex flex-col lg:flex-row gap-8 justify-center">
+    <div class="max-w-[1550px] mx-auto flex flex-col lg:flex-row gap-8 justify-center">
         
-        <div class="lg:w-[450px] bg-white p-6 rounded-2xl shadow-sm no-print border border-slate-200 h-fit sticky top-8">
-            <h2 class="text-xl font-bold mb-4 text-slate-800 flex items-center gap-2">
-                <span>🤖</span> Gemini AI Writer
-            </h2>
+        <div class="lg:w-[460px] space-y-5 no-print sidebar h-fit sticky top-10">
             
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Gemini API Key</label>
-                    <input type="password" id="apiKey" placeholder="Masukkan API Key Anda..." class="w-full p-2.5 border border-blue-200 rounded-lg text-sm bg-blue-50 focus:ring-2 focus:ring-blue-500 outline-none">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]">1</span>
+                    Konfigurasi Gemini AI
+                </h3>
+                <div class="flex gap-2 mb-3">
+                    <input type="password" id="apiKey" placeholder="Masukkan API Key (AIza...)" class="flex-grow p-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                    <button onclick="auditModels()" class="bg-slate-900 text-white px-5 py-3 rounded-xl text-xs font-bold hover:bg-black transition shadow-lg">AUDIT</button>
                 </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Nama</label>
-                        <input type="text" id="inNama" value="Tamroni" class="w-full p-2 border border-slate-200 rounded-lg text-sm" oninput="syncPreview()">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Tujuan PT</label>
-                        <input type="text" id="inPT" placeholder="Nama Perusahaan" class="w-full p-2 border border-slate-200 rounded-lg text-sm" oninput="syncPreview()">
-                    </div>
+                
+                <div id="modelSection" class="hidden animate-fade-in">
+                    <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase italic">Klik untuk Memilih Model:</label>
+                    <div id="modelList" class="custom-scroll bg-slate-50 border border-slate-100 rounded-xl max-h-40 overflow-y-auto p-2">
+                        </div>
                 </div>
+            </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Posisi yang Dilamar</label>
-                    <input type="text" id="inPosisi" placeholder="Contoh: Admin Produksi / Web Dev" class="w-full p-2 border border-slate-200 rounded-lg text-sm">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]">2</span>
+                    Detail Lamaran
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="text" id="inNama" placeholder="Nama Lengkap" class="p-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" value="Tamroni" oninput="sync()">
+                    <input type="text" id="inPT" placeholder="Nama Perusahaan" class="p-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500" oninput="sync()">
                 </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Ceritakan Pengalaman/Keahlian Anda</label>
-                    <textarea id="inPrompt" placeholder="Contoh: Saya lulusan SMK, pernah magang di perusahaan plywood selama 3 bulan, mahir HTML dan mengoperasikan mesin..." class="w-full p-2.5 border border-slate-200 rounded-lg h-32 text-sm focus:ring-2 focus:ring-slate-800 outline-none"></textarea>
-                </div>
-
-                <button id="btnGenerate" onclick="generateLetter()" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition-all flex justify-center items-center gap-2">
-                    <span id="btnText">BUAT SURAT OTOMATIS</span>
-                    <div id="loader" class="loading-spinner hidden"></div>
+                <input type="text" id="inPosisi" placeholder="Posisi yang Dilamar (Contoh: Admin Produksi)" class="w-full p-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                <textarea id="inPrompt" placeholder="Ceritakan keahlian Anda (Misal: Pengalaman magang di plywood, mahir HTML, menguasai mesin produksi...)" class="w-full p-3 border border-slate-200 rounded-xl h-28 text-sm outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                
+                <button id="btnGenerate" onclick="generateLetter()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all flex justify-center items-center gap-2">
+                    <span id="txtGen">GENERATE SURAT DENGAN AI</span>
                 </button>
+            </div>
 
-                <hr class="my-2">
-
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <label class="block text-[10px] font-bold text-slate-400 mb-1 uppercase">Upload TTD (JPG/PNG)</label>
-                    <input type="file" id="inTTD" accept="image/*" class="text-[10px] w-full" onchange="loadSignature(event)">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="bg-blue-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]">3</span>
+                    Tanda Tangan & Cetak
+                </h3>
+                <div class="flex flex-col gap-3">
+                    <div class="border-2 border-dashed border-slate-200 p-3 rounded-xl flex items-center gap-3">
+                        <input type="file" id="inTTD" accept="image/*" class="text-xs text-slate-400 w-full" onchange="handleSignature(event)">
+                    </div>
+                    <button onclick="window.print()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition shadow-lg">SIMPAN PDF (A4)</button>
                 </div>
-
-                <button onclick="window.print()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-md hover:bg-blue-700 transition-all">
-                    CETAK PDF
-                </button>
             </div>
         </div>
 
-        <div id="preview-area">
-            <div class="preview-container" id="printable">
-                <div class="flex justify-between items-start border-b-2 border-slate-900 pb-6 mb-8">
+        <div id="capture-area">
+            <div class="preview-container shadow-2xl" id="printable">
+                
+                <div class="flex justify-between items-end border-b-2 border-slate-800 pb-8 mb-10">
                     <div>
-                        <h1 id="outNama" class="text-4xl font-bold text-slate-900 uppercase" style="font-family: 'Playfair Display', serif;">TAMRONI</h1>
-                        <p id="outPosisiDisplay" class="text-xs tracking-[0.3em] text-slate-500 mt-2 uppercase font-medium">Calon Karyawan Profesional</p>
+                        <h1 id="outNama" class="text-5xl font-bold text-slate-900 tracking-tighter uppercase" style="font-family: 'Playfair Display', serif;">TAMRONI</h1>
+                        <p id="outRole" class="text-xs tracking-[0.4em] text-blue-600 mt-2 uppercase font-bold">PROFESSIONAL APPLICANT</p>
                     </div>
-                    <div class="text-right text-[9pt] text-slate-400 italic">
+                    <div class="text-right text-[10pt] leading-relaxed text-slate-500">
                         Tangerang, Indonesia<br>
-                        Dibuat secara profesional dengan AI
+                        <span id="outTanggal" class="italic"></span>
                     </div>
                 </div>
 
-                <div class="flex-grow overflow-hidden">
-                    <p id="outTanggal" class="mb-6 text-[11pt]"></p>
-                    <div class="mb-8">
+                <div class="mb-8 text-slate-800">
+                    <p class="mb-6" id="outFullDate"></p>
+                    <div class="space-y-1">
                         <p class="text-[11pt]">Kepada Yth.</p>
-                        <p id="outPT" class="font-bold text-[11pt] text-slate-900">Pimpinan HRD</p>
+                        <p id="outPT" class="font-bold text-[12pt] text-slate-900">Nama Perusahaan Tujuan</p>
                         <p class="text-[11pt]">Di Tempat</p>
                     </div>
-
-                    <div id="ai-content" class="text-[11pt] text-slate-800">
-                        <p class="font-bold underline mb-4">Perihal: Lamaran Pekerjaan</p>
-                        <p>Dengan hormat,</p>
-                        <div id="letterBody" class="mt-4 whitespace-pre-line">
-                            Silakan masukkan informasi Anda dan klik "Buat Surat Otomatis" untuk menghasilkan narasi profesional dari AI...
-                        </div>
-                    </div>
                 </div>
 
-                <div class="mt-4 flex justify-end">
+                <div id="ai-body" class="flex-grow text-slate-800 text-[11pt]">
+                    <p class="font-bold underline italic mb-4">Perihal: Lamaran Pekerjaan</p>
+                    <p class="mb-4">Dengan hormat,</p>
+                    <div id="letterContent" class="whitespace-pre-line">
+                        Konfigurasi API Key Anda di panel kiri, lalu masukkan informasi pengalaman Anda. Klik "Generate" untuk mengisi surat ini secara otomatis dengan bantuan AI.
+                    </div>
+                    <p class="mt-8">Demikian surat lamaran ini saya sampaikan. Atas perhatian dan kesempatan yang Bapak/Ibu berikan, saya ucapkan terima kasih.</p>
+                </div>
+
+                <div class="mt-10 flex justify-end">
                     <div class="w-48 text-center">
-                        <p class="text-[10pt] mb-2">Hormat saya,</p>
+                        <p class="text-[10pt] mb-2 text-slate-600 italic">Hormat saya,</p>
                         <div class="h-20 flex items-center justify-center overflow-hidden">
-                            <img id="ttd-img" src="" class="max-h-full object-contain filter contrast-125 brightness-110" style="image-rendering: crisp-edges;">
+                            <img id="ttd-img" src="">
                         </div>
-                        <p id="outNamaTtd" class="font-bold border-t border-slate-800 pt-1 mt-1 text-[10pt] uppercase tracking-wide">TAMRONI</p>
+                        <p id="outNamaTtd" class="font-bold border-t-2 border-slate-900 pt-1 mt-1 text-[11pt] uppercase tracking-tighter">TAMRONI</p>
                     </div>
                 </div>
             </div>
+            <p class="no-print text-center text-slate-400 text-xs mt-4 italic">Tip: Pastikan 'Background Graphics' dicentang saat mencetak PDF.</p>
         </div>
     </div>
 
     <script>
-        // Sinkronisasi input teks biasa ke pratinjau
-        function syncPreview() {
-            const nama = document.getElementById('inNama').value || "TAMRONI";
-            document.getElementById('outNama').innerText = nama;
-            document.getElementById('outNamaTtd').innerText = nama;
-            document.getElementById('outPT').innerText = document.getElementById('inPT').value || "Nama Perusahaan Tujuan";
-            
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('outTanggal').innerText = "Tangerang, " + new Date().toLocaleDateString('id-ID', options);
-        }
+        let selectedModel = "models/gemini-1.5-flash";
 
-        // FUNGSI INTI: PANGGIL GEMINI API
-        async function generateLetter() {
-            const apiKey = document.getElementById('apiKey').value;
-            const nama = document.getElementById('inNama').value;
-            const pt = document.getElementById('inPT').value;
-            const posisi = document.getElementById('inPosisi').value;
-            const info = document.getElementById('inPrompt').value;
+        // 1. AUDIT MODELS
+        async function auditModels() {
+            const key = document.getElementById('apiKey').value.trim();
+            const list = document.getElementById('modelList');
+            const section = document.getElementById('modelSection');
 
-            if (!apiKey) { alert("Masukkan API Key Gemini terlebih dahulu!"); return; }
-            if (!posisi || !info) { alert("Lengkapi posisi dan informasi tambahan!"); return; }
-
-            // UI Loading State
-            const btnText = document.getElementById('btnText');
-            const loader = document.getElementById('loader');
-            btnText.innerText = "SEDANG MEMPROSES...";
-            loader.classList.remove('hidden');
-
-            const prompt = `Tuliskan surat lamaran kerja yang sangat profesional, elegan, dan persuasif dalam Bahasa Indonesia. 
-            Data Pelamar:
-            - Nama: ${nama}
-            - Perusahaan Tujuan: ${pt}
-            - Posisi yang dilamar: ${posisi}
-            - Detail Pengalaman/Keahlian: ${info}
-
-            Aturan Penulisan:
-            1. Jangan gunakan pembukaan atau penutup seperti "Tentu, ini suratnya". Mulai langsung dari isi surat.
-            2. Gunakan gaya bahasa profesional namun rendah hati.
-            3. Fokus pada bagaimana keahlian tersebut berguna bagi perusahaan.
-            4. Pastikan panjangnya pas untuk satu halaman A4.
-            5. Jangan sertakan tempat/tanggal dan tanda tangan di teks AI karena sudah ada di template HTML.`;
+            if(!key) return alert("Masukkan API Key!");
 
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${key}`);
+                const data = await res.json();
+                
+                if(data.models) {
+                    list.innerHTML = "";
+                    section.classList.remove('hidden');
+                    data.models.forEach(m => {
+                        if(m.supportedGenerationMethods.includes("generateContent")) {
+                            const div = document.createElement('div');
+                            div.className = `model-item ${m.name === selectedModel ? 'model-active' : ''}`;
+                            div.id = `model-${m.name.replace(/\//g, '-')}`;
+                            div.innerHTML = `<span>${m.name.replace('models/', '').toUpperCase()}</span> <span class="text-[8px] opacity-50">${m.version}</span>`;
+                            div.onclick = () => chooseModel(m.name);
+                            list.appendChild(div);
+                        }
+                    });
+                } else { throw new Error(data.error.message); }
+            } catch (e) { alert("Error: " + e.message); }
+        }
+
+        function chooseModel(name) {
+            document.querySelectorAll('.model-item').forEach(el => el.classList.remove('model-active'));
+            document.getElementById(`model-${name.replace(/\//g, '-')}`).classList.add('model-active');
+            selectedModel = name;
+        }
+
+        // 2. GENERATE LETTER
+        async function generateLetter() {
+            const key = document.getElementById('apiKey').value.trim();
+            if(!key) return alert("Audit API Key dulu!");
+
+            const btn = document.getElementById('btnGenerate');
+            const txt = document.getElementById('txtGen');
+            
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            txt.innerText = "MENULIS DENGAN AI...";
+
+            const prompt = `Tuliskan isi surat lamaran kerja profesional tanpa pembukaan AI. 
+            Nama: ${document.getElementById('inNama').value}
+            Perusahaan: ${document.getElementById('inPT').value}
+            Posisi: ${document.getElementById('inPosisi').value}
+            Pengalaman: ${document.getElementById('inPrompt').value}
+            Gunakan Bahasa Indonesia formal yang persuasif. Fokus pada isi saja.`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1/${selectedModel}:generateContent?key=${key}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }]
-                    })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
 
                 const data = await response.json();
-                const aiText = data.candidates[0].content.parts[0].text;
-                
-                document.getElementById('letterBody').innerText = aiText;
-                document.getElementById('outPosisiDisplay').innerText = posisi;
-                autoScale(); // Sesuaikan font jika teks terlalu panjang
+                if(data.error) throw new Error(data.error.message);
 
-            } catch (error) {
-                console.error(error);
-                alert("Gagal menghubungi AI. Pastikan API Key benar.");
+                document.getElementById('letterContent').innerText = data.candidates[0].content.parts[0].text;
+                document.getElementById('outRole').innerText = document.getElementById('inPosisi').value.toUpperCase() || "PROFESSIONAL APPLICANT";
+                autoScale();
+            } catch (e) {
+                alert("Gagal: " + e.message);
             } finally {
-                btnText.innerText = "BUAT SURAT OTOMATIS";
-                loader.classList.add('hidden');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+                txt.innerText = "GENERATE SURAT DENGAN AI";
             }
         }
 
-        // Auto-Scale Font agar tetap 1 halaman
+        // 3. UTILITIES
+        function sync() {
+            const n = document.getElementById('inNama').value || "TAMRONI";
+            document.getElementById('outNama').innerText = n;
+            document.getElementById('outNamaTtd').innerText = n;
+            document.getElementById('outPT').innerText = document.getElementById('inPT').value || "Nama Perusahaan Tujuan";
+            
+            const opt = { year: 'numeric', month: 'long', day: 'numeric' };
+            const d = new Date().toLocaleDateString('id-ID', opt);
+            document.getElementById('outTanggal').innerText = d;
+            document.getElementById('outFullDate').innerText = "Tangerang, " + d;
+        }
+
+        function handleSignature(e) {
+            const img = document.getElementById('ttd-img');
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (f) => { img.src = f.target.result; img.style.display = "block"; };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        }
+
         function autoScale() {
             const container = document.getElementById('printable');
-            const content = document.getElementById('ai-content');
-            let fontSize = 11;
-            content.style.fontSize = fontSize + "pt";
-            while (container.scrollHeight > container.offsetHeight && fontSize > 8) {
-                fontSize -= 0.1;
-                content.style.fontSize = fontSize + "pt";
+            const body = document.getElementById('ai-body');
+            let size = 11;
+            body.style.fontSize = size + "pt";
+            // Jika konten melebihi tinggi A4, perkecil font
+            while (container.scrollHeight > container.offsetHeight && size > 8) {
+                size -= 0.1;
+                body.style.fontSize = size + "pt";
             }
         }
 
-        function loadSignature(event) {
-            const output = document.getElementById('ttd-img');
-            if (event.target.files && event.target.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => { 
-                    output.src = e.target.result;
-                    output.style.display = "block";
-                };
-                reader.readAsDataURL(event.target.files[0]);
-            }
-        }
-
-        syncPreview();
+        sync();
     </script>
 </body>
 </html>
