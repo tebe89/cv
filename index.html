@@ -3,117 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pembuat Surat Lamaran Profesional</title>
+    <title>Pembuat Lamaran Kerja + Tanda Tangan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .preview-container { background: white; width: 210mm; min-height: 297mm; padding: 20mm; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .preview-container { 
+            background: white; 
+            width: 210mm; 
+            height: 297mm; 
+            padding: 25mm; 
+            margin: auto; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
         
-        /* Styling Khusus Print */
         @media print {
             body { background: none; padding: 0; }
             .no-print { display: none; }
-            .preview-container { box-shadow: none; margin: 0; width: 100%; height: 100%; border: none; }
+            .preview-container { box-shadow: none; margin: 0; width: 100%; border: none; }
             @page { size: A4; margin: 0; }
         }
 
-        .accent-line { width: 50px; height: 3px; background-color: #1e293b; margin-top: 8px; }
-        .content-text { line-height: 1.6; color: #334155; text-align: justify; }
+        .content-text { line-height: 1.8; color: #1e293b; text-align: justify; font-size: 11pt; }
+        #ttd-img { max-height: 80px; max-width: 150px; display: none; margin-top: -10px; margin-bottom: -10px; }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
         
-        <div class="lg:w-1/3 bg-white p-6 rounded-xl shadow-lg no-print h-fit">
-            <h2 class="text-xl font-bold mb-4 text-slate-800 border-b pb-2">Data Lamaran</h2>
+        <div class="lg:w-1/3 bg-white p-6 rounded-2xl shadow-sm no-print h-fit sticky top-8 border border-slate-200">
+            <h2 class="text-xl font-bold mb-6 text-slate-800 flex items-center gap-2">
+                <span>📝</span> Data Lamaran
+            </h2>
+            
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium">Nama Lengkap</label>
-                    <input type="text" id="inNama" class="w-full p-2 border rounded" value="Tamroni" oninput="update()">
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nama Lengkap</label>
+                    <input type="text" id="inNama" placeholder="Contoh: Tamroni" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-800 outline-none" oninput="update()">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium">Posisi yang Dilamar</label>
-                    <input type="text" id="inPosisi" class="w-full p-2 border rounded" value="Web Developer / Admin Produksi" oninput="update()">
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Posisi/Jabatan</label>
+                    <input type="text" id="inPosisi" placeholder="Contoh: Web Developer" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-800 outline-none" oninput="update()">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium">Alamat/Kontak</label>
-                    <textarea id="inKontak" class="w-full p-2 border rounded" rows="3" oninput="update()">Tangerang, Indonesia&#10;0812-xxxx-xxxx&#10;email@contoh.com</textarea>
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Info Kontak (Alamat, HP, Email)</label>
+                    <textarea id="inKontak" placeholder="Jl. Raya No. 123&#10;08123456789&#10;email@domain.com" class="w-full p-2.5 border border-slate-300 rounded-lg h-24 text-sm" oninput="update()"></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium">Nama Perusahaan Tujuan</label>
-                    <input type="text" id="inPT" class="w-full p-2 border rounded" value="HRD PT. Maju Bersama" oninput="update()">
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Tujuan (Nama HRD/PT)</label>
+                    <input type="text" id="inPT" placeholder="HRD PT. Maju Jaya" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-800 outline-none" oninput="update()">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium">Isi Surat (Singkat & Padat)</label>
-                    <textarea id="inIsi" class="w-full p-2 border rounded" rows="8" oninput="update()">Melalui surat ini, saya bermaksud menyampaikan ketertarikan saya untuk melamar posisi tersebut di perusahaan Bapak/Ibu. Saya memiliki pengalaman dalam pengembangan aplikasi berbasis web dan memiliki ketelitian tinggi dalam bekerja. 
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Isi Surat</label>
+                    <textarea id="inIsi" placeholder="Tuliskan isi surat lamaran Anda di sini secara singkat dan profesional..." class="w-full p-2.5 border border-slate-300 rounded-lg h-40 text-sm" oninput="update()"></textarea>
+                </div>
+                
+                <div class="bg-slate-50 p-4 rounded-lg border border-dashed border-slate-400">
+                    <label class="block text-xs font-bold uppercase text-slate-600 mb-2 italic underline">Upload PNG Tanda Tangan</label>
+                    <input type="file" id="inTTD" accept="image/png, image/jpeg" class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-white hover:file:bg-slate-700 cursor-pointer" onchange="loadSignature(event)">
+                </div>
 
-Sebagai seorang yang adaptif, saya yakin dapat memberikan kontribusi positif bagi tim dan pertumbuhan perusahaan. Terlampir saya sertakan CV dan dokumen pendukung lainnya untuk bahan pertimbangan.</textarea>
-                </div>
-                <button onclick="window.print()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-semibold hover:bg-slate-700 transition">
-                    Cetak PDF
+                <button onclick="window.print()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all flex justify-center items-center gap-2">
+                    <span>🖨️</span> SIMPAN KE PDF (A4)
                 </button>
             </div>
         </div>
 
         <div class="lg:w-2/3">
             <div class="preview-container" id="printable">
-                <div class="flex justify-between items-start mb-12">
-                    <div>
-                        <h1 id="outNama" class="text-4xl font-bold text-slate-900 tracking-tight leading-none uppercase" style="font-family: 'Playfair Display', serif;">TAMRONI</h1>
-                        <p id="outPosisi" class="text-lg text-slate-500 mt-2 tracking-widest uppercase">Web Developer</p>
-                        <div class="accent-line"></div>
+                
+                <div class="flex justify-between items-start mb-14">
+                    <div class="border-l-4 border-slate-800 pl-4">
+                        <h1 id="outNama" class="text-3xl font-bold text-slate-900 uppercase tracking-tight" style="font-family: 'Playfair Display', serif;">NAMA ANDA</h1>
+                        <p id="outPosisi" class="text-sm text-slate-500 mt-1 tracking-[0.2em] uppercase font-light italic">POSISI YANG DILAMAR</p>
                     </div>
-                    <div id="outKontak" class="text-right text-sm text-slate-600 whitespace-pre-line">
-                        Tangerang, Indonesia
-                        0812-xxxx-xxxx
-                        email@contoh.com
+                    <div id="outKontak" class="text-right text-[10pt] text-slate-600 leading-relaxed whitespace-pre-line italic">
+                        Alamat Lengkap
+                        Nomor Telepon
+                        Email Aktif
                     </div>
                 </div>
 
-                <div class="mb-10 text-slate-800">
-                    <p class="mb-6" id="outTanggal">Tangerang, 28 Maret 2026</p>
-                    <p class="font-bold">Yth.</p>
-                    <p id="outPT" class="font-bold">Pimpinan HRD PT. Maju Bersama</p>
-                    <p>Di Tempat</p>
+                <div class="mb-10 text-slate-800 text-[11pt]">
+                    <p class="mb-8" id="outTanggal">Tangerang, 28 Maret 2026</p>
+                    <div class="space-y-1">
+                        <p>Kepada Yth.</p>
+                        <p class="font-bold" id="outPT">Nama Penerima / Nama Perusahaan</p>
+                        <p>Di Tempat</p>
+                    </div>
                 </div>
 
-                <div class="mb-10">
-                    <p class="font-semibold mb-4 text-slate-900">Perihal: Lamaran Pekerjaan</p>
+                <div class="flex-grow">
+                    <p class="font-bold mb-4 text-slate-900 italic underline">Perihal: Lamaran Pekerjaan</p>
                     <p class="content-text mb-4">Dengan hormat,</p>
-                    <div id="outIsi" class="content-text whitespace-pre-line">
-                        Melalui surat ini, saya bermaksud menyampaikan ketertarikan saya untuk melamar posisi tersebut di perusahaan Bapak/Ibu. Saya memiliki pengalaman dalam pengembangan aplikasi berbasis web dan memiliki ketelitian tinggi dalam bekerja. 
-
-                        Sebagai seorang yang adaptif, saya yakin dapat memberikan kontribusi positif bagi tim dan pertumbuhan perusahaan. Terlampir saya sertakan CV dan dokumen pendukung lainnya untuk bahan pertimbangan.
+                    
+                    <div id="outIsi" class="content-text whitespace-pre-line min-h-[200px]">
+                        Silakan isi data di panel kiri untuk memunculkan teks di sini...
                     </div>
-                    <p class="content-text mt-6">Besar harapan saya untuk dapat mendiskusikan kualifikasi saya lebih lanjut dalam sesi wawancara. Atas perhatian dan kesempatan yang Bapak/Ibu berikan, saya ucapkan terima kasih.</p>
+                    
+                    <p class="content-text mt-8">Demikian surat lamaran ini saya sampaikan. Atas perhatian dan kesempatannya, saya ucapkan terima kasih.</p>
                 </div>
 
-                <div class="mt-20">
-                    <p class="text-slate-800 mb-16">Hormat saya,</p>
-                    <p class="font-bold text-slate-900 underline decoration-2 underline-offset-4" id="outNamaTtd">TAMRONI</p>
+                <div class="mt-12 w-48 text-center ml-auto">
+                    <p class="text-slate-800 mb-4">Hormat saya,</p>
+                    
+                    <div class="flex justify-center items-center h-20 overflow-hidden">
+                        <img id="ttd-img" src="" alt="Tanda Tangan">
+                    </div>
+                    
+                    <p class="font-bold text-slate-900 border-t border-slate-800 pt-2 mt-2" id="outNamaTtd">NAMA LENGKAP</p>
                 </div>
+
             </div>
+            <p class="no-print text-center text-slate-400 text-sm mt-4 italic">Pastikan "Background Graphics" dicentang pada setelan print browser.</p>
         </div>
     </div>
 
     <script>
         function update() {
-            document.getElementById('outNama').innerText = document.getElementById('inNama').value;
-            document.getElementById('outNamaTtd').innerText = document.getElementById('inNama').value;
-            document.getElementById('outPosisi').innerText = document.getElementById('inPosisi').value;
-            document.getElementById('outKontak').innerText = document.getElementById('inKontak').value;
-            document.getElementById('outPT').innerText = document.getElementById('inPT').value;
-            document.getElementById('outIsi').innerText = document.getElementById('inIsi').value;
+            const nama = document.getElementById('inNama').value || "NAMA ANDA";
+            document.getElementById('outNama').innerText = nama;
+            document.getElementById('outNamaTtd').innerText = nama;
             
-            // Auto-update tanggal hari ini
+            document.getElementById('outPosisi').innerText = document.getElementById('inPosisi').value || "POSISI YANG DILAMAR";
+            document.getElementById('outKontak').innerText = document.getElementById('inKontak').value || "Alamat Lengkap\nNomor Telepon\nEmail";
+            document.getElementById('outPT').innerText = document.getElementById('inPT').value || "Nama Penerima / Nama Perusahaan";
+            
+            const isi = document.getElementById('inIsi').value || "Silakan isi data di panel kiri...";
+            document.getElementById('outIsi').innerText = isi;
+            
+            // Set Tanggal Otomatis
             const options = { year: 'numeric', month: 'long', day: 'numeric' };
             const today = new Date().toLocaleDateString('id-ID', options);
             document.getElementById('outTanggal').innerText = "Tangerang, " + today;
         }
+
+        function loadSignature(event) {
+            const output = document.getElementById('ttd-img');
+            output.src = URL.createObjectURL(event.target.files[0]);
+            output.style.display = "block";
+            output.onload = function() {
+                URL.revokeObjectURL(output.src) // free memory
+            }
+        }
         
-        // Jalankan saat pertama load
+        // Inisialisasi awal
         update();
     </script>
 </body>
